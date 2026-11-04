@@ -1,4 +1,4 @@
--- SIGN_RECEIPT
+-- SIGN_RECEIPT (跳出領取補款時、是否簽收)
 IF OBJECT_ID('dbo.SIGN_RECEIPT', 'U') IS NULL
 BEGIN
 

@@ -1,4 +1,4 @@
--- cheakin_log
+-- cheakin_log (HR¬ö¿ý¹Lµ{)
 IF OBJECT_ID('dbo.CHECKIN_LOG', 'U') IS NULL
 BEGIN
 
