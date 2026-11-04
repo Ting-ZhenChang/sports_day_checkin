@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+# MySQL 連線（cryptography 是 MySQL 8 預設驗證方式 caching_sha2_password 所需）
+pymysql
+cryptography

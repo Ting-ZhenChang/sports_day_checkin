@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>領取補助款 Claim | ACES </title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-bg">
+    <main class="app-shell">
+      <header class="brand-header">
+        <div class="brand-mark">ACES <span>DTD</span></div>
+        <h1>領取補助款 <span class="en">Claim Allowance</span></h1>
+      </header>
+
+      <div class="page-body">
+        <!-- 載入中 -->
+        <section id="loadingView" class="card center">
+          <p class="lead" style="margin:0">載入中… <span class="en">Loading…</span></p>
+        </section>
+
+        <!-- 連結無效 -->
+        <section id="invalidView" class="card center" hidden>
+          <div class="status-icon stop">×</div>
+          <h2>連結無效 <span class="en block">Invalid link</span></h2>
+          <p class="lead">請使用信件中的連結開啟。<span class="en block">Please open the link from your email.</span></p>
+        </section>
+
+        <!-- 尚未報到：擋下 -->
+        <section id="blockedView" class="card center" hidden>
+          <div class="status-icon warn">!</div>
+          <h2>尚未完成報到 <span class="en block">Not checked in yet</span></h2>
+          <p class="lead">請先至報到處完成報到，再回到此頁。<span class="en block">Please check in at the registration desk first, then come back to this page.</span></p>
+          <button id="refreshBtn" class="secondary-btn full">重新整理 Refresh</button>
+        </section>
+
+        <!-- 確認資料 -->
+        <section id="formView" class="card" hidden>
+          <span class="eyebrow">CLAIM</span>
+          <h2>請確認您的資料 <span class="en block">Please confirm your details</span></h2>
+
+          <dl class="info-list">
+            <div><dt>工號 <span class="en">Employee ID</span></dt><dd id="fEmpId"></dd></div>
+            <div><dt>姓名 <span class="en">Name</span></dt><dd id="fName"></dd></div>
+            <div><dt>報到時間 <span class="en">Check-in time</span></dt><dd id="fTime"></dd></div>
+            <div><dt>人數 <span class="en">Headcount</span></dt><dd id="fPeople"></dd></div>
+            <div><dt>金額 <span class="en">Amount</span></dt><dd id="fAmount" class="amount-strong"></dd></div>
+          </dl>
+
+          <label class="checkbox-row">
+            <input id="confirmCheck" type="checkbox" />
+            <span>我確認以上資料正確<span class="en block">I confirm the above is correct</span></span>
+          </label>
+
+          <button id="generateBtn" class="primary-btn" disabled>確認並產生領取碼<br /><span class="en">Confirm &amp; Get Claim Code</span></button>
+          <p class="helper-note">人數有誤，請洽 HR 修改。<br />If the headcount is wrong, please contact HR.</p>
+        </section>
+
+        <!-- 領取碼：等 HR 掃碼 -->
+        <section id="codeView" class="card center" hidden>
+          <span class="eyebrow">CLAIM CODE</span>
+          <h2>請向 HR 出示此領取碼 <span class="en block">Show this code to HR</span></h2>
+          <div class="qr-box"><div id="claimQr" class="qr-canvas"></div></div>
+          <p class="mono" id="claimCodeText" style="font-weight:800"></p>
+          <dl class="info-list">
+            <div><dt>姓名 <span class="en">Name</span></dt><dd id="cName"></dd></div>
+            <div><dt>金額 <span class="en">Amount</span></dt><dd id="cAmount" class="amount-strong"></dd></div>
+          </dl>
+          <p class="helper-note">等待 HR 掃碼交付現金…<br />Waiting for HR to scan and hand over the cash…</p>
+        </section>
+
+        <!-- 已領取 / 領取成功 -->
+        <section id="doneView" class="card center" hidden>
+          <div class="status-icon">✓</div>
+          <h2 id="doneTitle"></h2>
+          <p id="doneTime" class="lead"></p>
+          <p class="helper-note">如有疑問請洽 HR。<br />Please contact HR if you have any questions.</p>
+        </section>
+      </div>
+
+      <footer>© 2026 ACES DTD. ALL RIGHTS RESERVED.</footer>
+    </main>
+  </div>
+
+  <script src="js/vendor/qrcode.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/mock-api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/claim.js"></script>
+</body>
+</html>

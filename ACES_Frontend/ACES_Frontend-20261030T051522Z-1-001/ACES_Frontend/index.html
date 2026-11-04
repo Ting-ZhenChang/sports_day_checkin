@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACES  運動會報到系統</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-bg">
+    <main class="app-shell wide">
+      <header class="brand-header">
+        <div class="brand-mark">ACES <span>DTD</span></div>
+        <h1>Visionflow</h1>
+        <p>運動會報到與簽收系統</p>
+      </header>
+
+      <div class="page-body">
+        <div class="notice">
+          這是開發用導覽頁，正式上線不會對外開放。四個頁面共用同一組資料（目前存在這個瀏覽器），不做登入，權限靠「連結發給誰」控制。
+        </div>
+
+        <div class="nav-grid">
+          <a class="nav-card" href="checkin.html">
+            <strong>① 報到頁</strong>
+            <span>報到工作人員：輸入自己的工號 → 掃員工 QR code → ＋／－ 調整眷屬人數 → 報到成功</span>
+            <em>連結發給：報到處 / 隊長</em>
+          </a>
+          <a class="nav-card" href="hr.html">
+            <strong>② HR 查詢看板</strong>
+            <span>即時應報到／實際報到／未報到；依小隊、部門、工號、姓名查詢；補登記、修改人數</span>
+            <em>連結發給：HR</em>
+          </a>
+          <a class="nav-card" href="sign.html">
+            <strong>③ HR 簽收掃碼頁</strong>
+            <span>HR 掃員工的領取碼交付現金，掃完才算交易完成</span>
+            <em>連結發給：HR</em>
+          </a>
+          <div class="nav-card">
+            <strong>④ 員工領取頁</strong>
+            <span>員工從信件連結進入（中英雙語）：未報到擋下 → 確認 → 產生領取碼。請由下方表格的「領取頁」進入</span>
+            <em>連結寄給：每位員工</em>
+          </div>
+        </div>
+
+        <div class="topbar">
+          <div>
+            <h2>示範員工</h2>
+            <p>正式版這些 QR code 與連結會寄到員工信箱；這裡方便你在電腦螢幕上用手機掃描測試。</p>
+          </div>
+          <button id="resetBtn" class="ghost-btn">重設示範資料</button>
+        </div>
+
+        <div class="table-wrap">
+          <table style="min-width:760px">
+            <thead>
+              <tr>
+                <th>工號</th>
+                <th>姓名</th>
+                <th>填寫眷屬</th>
+                <th>狀態</th>
+                <th>報到 QR</th>
+                <th>領取頁</th>
+                <th>領取碼 QR</th>
+              </tr>
+            </thead>
+            <tbody id="demoBody"></tbody>
+          </table>
+        </div>
+        <p class="helper-note">手機相機需要 HTTPS 或 localhost 才能開啟；資料目前只在同一個瀏覽器內共用。</p>
+      </div>
+
+      <footer>© 2026 ACES DTD. ALL RIGHTS RESERVED.</footer>
+    </main>
+  </div>
+
+  <script src="js/vendor/qrcode.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/mock-api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/index.js"></script>
+</body>
+</html>
