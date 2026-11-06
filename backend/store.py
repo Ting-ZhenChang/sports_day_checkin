@@ -67,7 +67,7 @@ def connection_string():
         "SERVER=" + quote(os.environ["SQL_SERVER"]),
         "DATABASE=" + quote(os.environ["SQL_DATABASE"]),
         "Encrypt=yes",
-        "TrustServerCertificate=yes",
+        "TrustServerCertificate=yes", ## 內網測試用
         "APP=SportsDayAPI",
     ]
 
