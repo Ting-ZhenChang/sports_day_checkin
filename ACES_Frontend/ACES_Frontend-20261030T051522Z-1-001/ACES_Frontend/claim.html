@@ -35,38 +35,22 @@
           <button id="refreshBtn" class="secondary-btn full">重新整理 Refresh</button>
         </section>
 
-        <!-- 確認資料 -->
-        <section id="formView" class="card" hidden>
-          <span class="eyebrow">CLAIM</span>
-          <h2>請確認您的資料 <span class="en block">Please confirm your details</span></h2>
-
-          <dl class="info-list">
-            <div><dt>工號 <span class="en">Employee ID</span></dt><dd id="fEmpId"></dd></div>
-            <div><dt>姓名 <span class="en">Name</span></dt><dd id="fName"></dd></div>
-            <div><dt>報到時間 <span class="en">Check-in time</span></dt><dd id="fTime"></dd></div>
-            <div><dt>人數 <span class="en">Headcount</span></dt><dd id="fPeople"></dd></div>
-            <div><dt>金額 <span class="en">Amount</span></dt><dd id="fAmount" class="amount-strong"></dd></div>
-          </dl>
-
-          <label class="checkbox-row">
-            <input id="confirmCheck" type="checkbox" />
-            <span>我確認以上資料正確<span class="en block">I confirm the above is correct</span></span>
-          </label>
-
-          <button id="generateBtn" class="primary-btn" disabled>確認並產生領取碼<br /><span class="en">Confirm &amp; Get Claim Code</span></button>
-          <p class="helper-note">人數有誤，請洽 HR 修改。<br />If the headcount is wrong, please contact HR.</p>
-        </section>
-
-        <!-- 領取碼：等 HR 掃碼 -->
+        <!-- 已報到：直接顯示資料與唯一領取碼，等 HR / 財務掃碼確認 -->
         <section id="codeView" class="card center" hidden>
           <span class="eyebrow">CLAIM CODE</span>
           <h2>請向 HR 出示此領取碼 <span class="en block">Show this code to HR</span></h2>
           <div class="qr-box"><div id="claimQr" class="qr-canvas"></div></div>
           <p class="mono" id="claimCodeText" style="font-weight:800"></p>
-          <dl class="info-list">
+
+          <dl class="info-list" style="text-align:left">
+            <div><dt>工號 <span class="en">Employee ID</span></dt><dd id="cEmpId"></dd></div>
             <div><dt>姓名 <span class="en">Name</span></dt><dd id="cName"></dd></div>
+            <div><dt>報到時間 <span class="en">Check-in time</span></dt><dd id="cTime"></dd></div>
+            <div><dt>人數 <span class="en">Headcount</span></dt><dd id="cPeople"></dd></div>
             <div><dt>金額 <span class="en">Amount</span></dt><dd id="cAmount" class="amount-strong"></dd></div>
           </dl>
+
+          <p class="helper-note">人數有誤，請洽 HR 修改。<br />If the headcount is wrong, please contact HR.</p>
           <p class="helper-note">等待 HR 掃碼交付現金…<br />Waiting for HR to scan and hand over the cash…</p>
         </section>
 
@@ -85,7 +69,7 @@
 
   <script src="js/vendor/qrcode.js"></script>
   <script src="js/config.js"></script>
-  <script src="js/rest-api.js"></script>
+  <script src="js/mock-api.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/claim.js"></script>
 </body>

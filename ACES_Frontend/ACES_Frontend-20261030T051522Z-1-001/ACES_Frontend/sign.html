@@ -12,7 +12,7 @@
       <header class="brand-header">
         <div class="brand-mark">ACES <span>DTD</span></div>
         <h1>簽收掃碼</h1>
-        <p>HR 交付現金專用</p>
+        <p>HR / 財務交付現金專用</p>
       </header>
 
       <div class="page-body">
@@ -30,12 +30,10 @@
         <!-- 2. 掃領取碼 -->
         <section id="scanView" hidden>
           <div class="operator-bar">
-            <span>簽收人：<strong id="signerLabel"></strong></span>
-            <button id="changeSignerBtn" class="link-btn" type="button">更換工號</button>
-          </div>
+            <span>簽收人：<strong id="signerLabel"></strong></span>          </div>
 
           <div class="scan-box"><video id="video" playsinline muted></video></div>
-          <p class="scan-hint">請掃描員工出示的領取碼，掃完即視為已交付現金</p>
+          <p class="scan-hint">請掃描員工出示的領取碼，核對資料並按下確認後才算完成</p>
           <p id="scanError" class="scan-error" hidden></p>
 
           <div class="manual-box">
@@ -47,12 +45,22 @@
           </div>
         </section>
 
-        <!-- 3. 結果 -->
+        <!-- 3. 顯示此人已報到完成的資料，按下確認才算領款完成 -->
+        <section id="confirmView" class="card center" hidden>
+          <div class="status-icon">✓</div>
+          <h2>此人已完成報到</h2>
+          <p class="lead">請核對資料並交付現金，再按下確認。</p>
+          <dl id="confirmInfo" class="info-list" style="text-align:left"></dl>
+          <button id="signBtn" class="primary-btn">確認領取完成</button>
+          <button id="cancelSignBtn" class="ghost-btn full">取消，掃下一位</button>
+        </section>
+
+        <!-- 4. 結果 -->
         <section id="resultView" class="card center" hidden>
           <div id="resultIcon" class="status-icon">✓</div>
           <h2 id="resultTitle"></h2>
           <dl id="resultInfo" class="info-list" style="text-align:left"></dl>
-          <button id="nextBtn" class="primary-btn">掃下一位</button>
+          <button id="nextBtn" class="primary-btn">完成報到</button>
         </section>
       </div>
 
@@ -62,7 +70,7 @@
 
   <script src="js/vendor/jsQR.js"></script>
   <script src="js/config.js"></script>
-  <script src="js/rest-api.js"></script>
+  <script src="js/mock-api.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/scanner.js"></script>
   <script src="js/sign.js"></script>

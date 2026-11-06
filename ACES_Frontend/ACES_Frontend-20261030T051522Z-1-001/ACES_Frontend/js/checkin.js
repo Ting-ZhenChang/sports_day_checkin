@@ -115,14 +115,6 @@ function enterScan() {
   scanner.start();
 }
 
-$("changeOperatorBtn").addEventListener("click", () => {
-  scanner.stop();
-  setOperator(OPERATOR_KEY, "");
-  operatorId = "";
-  $("operatorInput").value = "";
-  showCheckinView("login");
-});
-
 $("manualToggle").addEventListener("click", () => {
   $("manualForm").hidden = !$("manualForm").hidden;
   if (!$("manualForm").hidden) $("manualInput").focus();

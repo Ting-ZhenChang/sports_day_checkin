@@ -30,9 +30,7 @@
         <!-- 2. 掃 QR code -->
         <section id="scanView" hidden>
           <div class="operator-bar">
-            <span>報到人員：<strong id="operatorLabel"></strong></span>
-            <button id="changeOperatorBtn" class="link-btn" type="button">更換工號</button>
-          </div>
+            <span>報到人員：<strong id="operatorLabel"></strong></span>          </div>
 
           <div class="scan-box"><video id="video" playsinline muted></video></div>
           <p class="scan-hint">請將員工的 QR code 對準框內</p>
@@ -64,7 +62,7 @@
             <div class="row total"><span>合計</span><span id="rTotal"></span></div>
           </div>
 
-          <button id="confirmBtn" class="primary-btn">確認報到</button>
+          <button id="confirmBtn" class="primary-btn">完成報到</button>
           <button id="cancelBtn" class="ghost-btn full">取消，掃下一位</button>
         </section>
 
@@ -84,7 +82,7 @@
   <script src="js/vendor/qrcode.js"></script>
   <script src="js/vendor/jsQR.js"></script>
   <script src="js/config.js"></script>
-  <script src="js/rest-api.js"></script>
+  <script src="js/mock-api.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/scanner.js"></script>
   <script src="js/checkin.js"></script>

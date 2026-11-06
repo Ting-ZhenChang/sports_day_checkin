@@ -39,7 +39,17 @@ function toast(message, type = "ok") {
 function openModal({ title, body, actions }) {
   const overlay = el("div", { class: "modal-overlay" });
   const box = el("div", { class: "modal", role: "dialog", "aria-modal": "true" });
-  const close = () => overlay.remove();
+  const close = () => {
+    overlay.remove();
+    document.removeEventListener("keydown", onKey);
+  };
+  const onKey = (e) => e.key === "Escape" && close();
+
+  // 沒有按鍵的視窗（純檢視）：點視窗外或按 Esc 關閉。
+  if (!actions.length) {
+    overlay.addEventListener("click", (e) => e.target === overlay && close());
+    document.addEventListener("keydown", onKey);
+  }
 
   const row = el("div", { class: "modal-actions" });
   actions.forEach((action) => {
@@ -62,7 +72,8 @@ function openModal({ title, body, actions }) {
     row.append(button);
   });
 
-  box.append(el("h3", { text: title }), body || "", row);
+  box.append(el("h3", { text: title }), body || "");
+  if (actions.length) box.append(row);
   overlay.append(box);
   document.body.append(overlay);
   return { close };
@@ -94,10 +105,11 @@ const ERROR_TEXT = {
   INVALID_OPERATOR: { zh: "工號格式錯誤", en: "Invalid employee ID" },
   INVALID_EMP_ID: { zh: "工號格式錯誤（T 或 111 開頭加 5 碼數字）", en: "Invalid employee ID" },
   INVALID_RELATIVES: { zh: "眷屬人數超出範圍", en: "Headcount out of range" },
-  MISSING_FIELDS: { zh: "請填寫姓名與單位", en: "Name and unit are required" },
+  MISSING_FIELDS: { zh: "請填寫姓名與部門", en: "Name and department are required" },
   ALREADY_CHECKED_IN: { zh: "已報到，不可重複報到", en: "Already checked in" },
   NOT_CHECKED_IN: { zh: "尚未報到", en: "Not checked in yet" },
   ALREADY_CLAIMED: { zh: "已領取", en: "Already received" },
+  CLAIM_CODE_ISSUED: { zh: "已產生領取碼，不可修改人數", en: "Claim code already issued" },
 };
 
 function errorText(err, bilingual = false) {

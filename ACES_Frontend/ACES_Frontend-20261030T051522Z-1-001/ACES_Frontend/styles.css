@@ -583,6 +583,18 @@ button:disabled {
   margin-top: 0;
 }
 
+.modal-actions > :only-child {
+  grid-column: 1 / -1;
+}
+
+.claim-frame {
+  display: block;
+  width: 100%;
+  height: 68vh;
+  border: 1px solid #dfe6f2;
+  border-radius: 14px;
+}
+
 /* ---------- HR 看板 ---------- */
 
 .topbar {
@@ -710,6 +722,17 @@ td small {
 .badge.wait {
   color: var(--warn);
   background: #fff3da;
+}
+
+button.badge-btn {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.badge-btn:hover {
+  filter: brightness(0.95);
+  text-decoration: underline;
 }
 
 .badge.tag {

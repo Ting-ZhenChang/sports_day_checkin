@@ -1,8 +1,7 @@
 // 活動規則設定。標示「待 HR 確認」的項目請在會後依 HR 決定調整。
 const CONFIG = {
-  EMPLOYEE_SUBSIDY: 500, // 員工補助（待 HR 確認）
-  RELATIVE_SUBSIDY: 200, // 眷屬每人補助（待 HR 確認）
-  MAX_RELATIVES: 5, // 眷屬上限 5 人，每人最多 1,500 元（待 HR 確認）
+  // 補助金額由後端計算（見 mock-api.js），前端只顯示後端回傳的 amount。
+  MAX_RELATIVES: 5, // 眷屬上限 5 人（待 HR 確認）
 
   // 報到眷屬人數可否超過表單填寫數（待 HR 確認；Tim 認為理論上不行）
   ALLOW_EXCEED_DECLARED: false,
@@ -29,10 +28,6 @@ function isValidEmpId(raw) {
 // 以後 5 碼數字判斷是否為同一人（T12345 與 11112345 視為同一人）。
 function empKey(empId) {
   return normalizeEmpId(empId).slice(-5);
-}
-
-function calcAmount(relatives) {
-  return CONFIG.EMPLOYEE_SUBSIDY + CONFIG.RELATIVE_SUBSIDY * relatives;
 }
 
 // 報到時眷屬人數上限：預設為表單填寫數。

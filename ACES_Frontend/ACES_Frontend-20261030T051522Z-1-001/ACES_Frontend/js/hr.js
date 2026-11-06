@@ -1,6 +1,7 @@
 // HR 查詢看板：即時人數、依小隊 / 部門 / 工號 / 姓名查詢、補登記、修改人數（最高修改權）。
 
-const WALKIN_OPERATOR = "HR"; // 補登記時寫入報到表的負責人（看板不做登入）
+const HR_OPERATOR = "HR"; // 看板不做登入：補登記寫入報到負責人、完成報到寫入簽收人都記為 HR
+const TEAM_OPTIONS = Array.from({ length: 8 }, (_, i) => `第${i + 1}隊`); // 補登記的小隊下拉選項
 const ALL = "";
 
 let records = [];
@@ -13,7 +14,7 @@ function sum(list, pick) {
   return list.reduce((total, item) => total + pick(item), 0);
 }
 
-function renderStats() {
+function renderStats(claimedTotal) {
   // 應報到：名單內的人；實際報到：全部已報到者（含補登記）。
   const listed = records.filter((r) => !r.walk_in);
   const checked = records.filter((r) => r.checked_in);
@@ -28,7 +29,7 @@ function renderStats() {
   $("statMissing").textContent = missing.length;
   $("statMissingSub").textContent = `含眷屬 ${missing.length + sum(missing, (r) => r.declared_relatives)} 人`;
   $("statClaimed").textContent = claimed.length;
-  $("statClaimedSub").textContent = `金額 ${formatMoney(sum(claimed, (r) => r.amount))}`;
+  $("statClaimedSub").textContent = `金額 ${formatMoney(claimedTotal)}`;
 }
 
 // 篩選選單選項由資料動態產生，並保留目前選擇。
@@ -41,7 +42,7 @@ function fillSelect(select, label, values, current) {
 }
 
 function renderFilters() {
-  filters.team = fillSelect(teamFilter, "小隊", records.map((r) => r.team), filters.team);
+  filters.team = fillSelect(teamFilter, "小隊", TEAM_OPTIONS, filters.team);
   filters.unit = fillSelect(unitFilter, "部門", records.map((r) => r.unit), filters.unit);
 }
 
@@ -67,7 +68,11 @@ function claimCell(row) {
   if (row.claimed) {
     return el("div", {}, el("span", { class: "badge ok", text: "已領取" }), el("small", { text: `${row.signed_at}（${row.signer_id}）` }));
   }
-  if (row.claim_code) return el("span", { class: "badge wait", text: "已產生領取碼" });
+  // 補登記的人沒有信件，點「待領取」直接顯示他的領取頁。
+  if (row.checked_in && row.walk_in) {
+    return el("button", { type: "button", class: "badge wait badge-btn", title: "查看領取頁", text: "待領取", onclick: () => showClaimPage(row) });
+  }
+  if (row.checked_in) return el("span", { class: "badge wait", text: "待領取" });
   return el("span", { class: "badge tag", text: "—" });
 }
 
@@ -82,13 +87,13 @@ function renderTable() {
 
   body.replaceChildren(
     ...rows.map((row) => {
-      const editable = row.checked_in && !row.claimed;
+      // 報到完成即產生領取 QR Code，之後只能檢視人數，不可再改。
       const editBtn = el("button", {
         type: "button",
         class: "secondary-btn small-btn",
-        text: "修改人數",
-        disabled: !editable,
-        title: row.claimed ? "已領取，不可修改" : row.checked_in ? "" : "尚未報到",
+        text: "報到人數",
+        disabled: !row.checked_in,
+        title: row.checked_in ? "" : "尚未報到",
         onclick: () => openEdit(row),
       });
       const walkInBadge = row.walk_in ? el("span", { class: "badge tag", text: "補登記" }) : null;
@@ -112,9 +117,10 @@ function renderTable() {
 }
 
 async function refresh() {
-  records = await api.listRecords();
+  let claimedTotal;
+  [records, claimedTotal] = await Promise.all([api.listRecords(), api.getClaimedTotal()]);
   renderFilters();
-  renderStats();
+  renderStats(claimedTotal);
   renderTable();
   $("updatedAt").textContent = new Date().toLocaleTimeString("zh-TW", { hour12: false });
 }
@@ -122,15 +128,9 @@ async function refresh() {
 // ---------- 修改人數 ----------
 
 function openEdit(row) {
-  const amountText = el("strong", { class: "amount-strong", text: formatMoney(row.amount) });
-  const stepper = createStepper({
-    value: row.relatives,
-    min: 0,
-    max: CONFIG.MAX_RELATIVES,
-    onChange: (n) => {
-      amountText.textContent = formatMoney(calcAmount(n));
-    },
-  });
+  // 已產生領取碼，人數僅供檢視：＋／－ 停用、沒有取消／確認鍵，點視窗外或按 Esc 關閉。
+  const stepper = createStepper({ value: row.relatives, min: 0, max: CONFIG.MAX_RELATIVES });
+  stepper.node.querySelectorAll("button").forEach((b) => (b.disabled = true));
 
   const body = el(
     "div",
@@ -138,30 +138,10 @@ function openEdit(row) {
     el("p", { class: "modal-text", text: `${row.name}（${row.emp_id}）　表單填寫眷屬 ${row.declared_relatives} 人` }),
     el("label", { class: "field-label", text: "報到眷屬人數" }),
     stepper.node,
-    el("p", { class: "modal-text", style: "margin-top:16px" }, "金額：", amountText)
+    el("p", { class: "modal-text", style: "margin-top:16px" }, "金額：", el("strong", { class: "amount-strong", text: formatMoney(row.amount) }))
   );
 
-  openModal({
-    title: "修改報到人數",
-    body,
-    actions: [
-      { label: "取消" },
-      {
-        label: "確認修改",
-        primary: true,
-        onClick: async () => {
-          try {
-            await api.updateRelatives({ empId: row.emp_id, relatives: stepper.value });
-            toast(`已更新：${row.name} 眷屬 ${stepper.value} 人，金額 ${formatMoney(calcAmount(stepper.value))}`);
-            await refresh();
-          } catch (err) {
-            toast(errorText(err), "error");
-            await refresh();
-          }
-        },
-      },
-    ],
-  });
+  openModal({ title: "報到人數", body, actions: [] });
 }
 
 // ---------- 補登記 ----------
@@ -169,8 +149,19 @@ function openEdit(row) {
 function openWalkIn() {
   const empId = el("input", { class: "input compact", placeholder: "工號，例如 T12345", autocomplete: "off", autocapitalize: "characters" });
   const name = el("input", { class: "input compact", placeholder: "姓名", autocomplete: "off" });
-  const unit = el("input", { class: "input compact", placeholder: "單位", autocomplete: "off" });
-  const team = el("input", { class: "input compact", placeholder: "小隊（選填）", autocomplete: "off" });
+  // 部門：可直接輸入，也可從現有部門下拉選取。
+  const unit = el("input", { class: "input compact", placeholder: "部門（可下拉選擇）", autocomplete: "off", list: "unitOptions" });
+  const unitOptions = el(
+    "datalist",
+    { id: "unitOptions" },
+    [...new Set(records.map((r) => r.unit))].sort().map((v) => el("option", { value: v }))
+  );
+  const team = el(
+    "select",
+    { class: "input compact" },
+    el("option", { value: "", text: "小隊（選填）" }),
+    TEAM_OPTIONS.map((v) => el("option", { value: v, text: v }))
+  );
   const error = el("p", { class: "error-text" });
   const stepper = createStepper({ value: 0, min: 0, max: CONFIG.MAX_RELATIVES });
 
@@ -178,7 +169,7 @@ function openWalkIn() {
     "div",
     { class: "form-grid" },
     el("div", {}, el("label", { class: "field-label", text: "工號" }), empId),
-    el("div", { class: "form-grid two" }, el("div", {}, el("label", { class: "field-label", text: "姓名" }), name), el("div", {}, el("label", { class: "field-label", text: "單位" }), unit)),
+    el("div", { class: "form-grid two" }, el("div", {}, el("label", { class: "field-label", text: "姓名" }), name), el("div", {}, el("label", { class: "field-label", text: "部門" }), unit, unitOptions)),
     el("div", {}, el("label", { class: "field-label", text: "小隊" }), team),
     el("div", {}, el("label", { class: "field-label", text: "眷屬人數" }), stepper.node),
     error
@@ -198,7 +189,7 @@ function openWalkIn() {
             return false;
           }
           if (!name.value.trim() || !unit.value.trim()) {
-            error.textContent = "請填寫姓名與單位";
+            error.textContent = "請填寫姓名與部門";
             return false;
           }
           try {
@@ -208,11 +199,11 @@ function openWalkIn() {
               unit: unit.value,
               team: team.value,
               relatives: stepper.value,
-              operatorId: WALKIN_OPERATOR,
+              operatorId: HR_OPERATOR,
             });
             toast(`補登記成功：${row.name}（眷屬 ${row.relatives} 人）`);
             await refresh();
-            showWalkInLink(row);
+            showClaimPage(row, `已完成補登記：${row.name}`);
           } catch (err) {
             error.textContent = errorText(err);
             return false;
@@ -224,31 +215,27 @@ function openWalkIn() {
   empId.focus();
 }
 
-// 補登記的人沒有信件，把他的領取頁連結給 HR 轉交。
-function showWalkInLink(row) {
-  const link = new URL(`claim.html?c=${row.seed_code}`, location.href).href;
+// 補登記的人沒有信件，直接在視窗內顯示他的領取頁（領取碼）給對方出示。
+function showClaimPage(row, title = `領取補助款：${row.name}`) {
+  const src = new URL(`claim.html?c=${row.seed_code}`, location.href).href;
   openModal({
-    title: "已完成補登記",
-    body: el(
-      "div",
-      {},
-      el("p", { class: "modal-text", text: `${row.name} 沒有收到信件，請把下列領取頁連結提供給對方：` }),
-      el("p", { class: "mono", style: "font-size:13px", text: link })
-    ),
+    title,
+    body: el("iframe", { class: "claim-frame", src, title: "領取補助款" }),
     actions: [
+      { label: "察看確認" },
       {
-        label: "複製連結",
+        label: "完成報到",
+        primary: true,
         onClick: async () => {
           try {
-            await navigator.clipboard.writeText(link);
-            toast("已複製連結");
-          } catch {
-            toast("無法自動複製，請手動選取連結", "error");
+            await api.signReceipt({ claimCode: row.claim_code, signerId: HR_OPERATOR });
+            toast(`領取完成：${row.name}`);
+          } catch (err) {
+            toast(errorText(err), "error");
           }
-          return false;
+          await refresh();
         },
       },
-      { label: "完成", primary: true },
     ],
   });
 }

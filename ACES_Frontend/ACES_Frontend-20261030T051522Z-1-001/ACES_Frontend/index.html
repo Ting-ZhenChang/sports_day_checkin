@@ -23,22 +23,22 @@
         <div class="nav-grid">
           <a class="nav-card" href="checkin.html">
             <strong>① 報到頁</strong>
-            <span>報到工作人員：輸入自己的工號 → 掃員工 QR code → ＋／－ 調整眷屬人數 → 報到成功</span>
+            <span>報到工作人員：輸入自己的工號 → 掃員工 QR code → 跳出報到頁，＋／－ 調整眷屬人數 → 按「完成報到」，員工的領取碼才會出現</span>
             <em>連結發給：報到處 / 隊長</em>
           </a>
           <a class="nav-card" href="hr.html">
             <strong>② HR 查詢看板</strong>
-            <span>即時應報到／實際報到／未報到；依小隊、部門、工號、姓名查詢；補登記、修改人數</span>
+            <span>即時應報到／實際報到／未報到；依小隊、部門、工號、姓名查詢；補登記、報到人數</span>
             <em>連結發給：HR</em>
           </a>
           <a class="nav-card" href="sign.html">
             <strong>③ HR 簽收掃碼頁</strong>
-            <span>HR 掃員工的領取碼交付現金，掃完才算交易完成</span>
+            <span>HR / 財務掃員工的領取碼 → 看到此人已報到完成的資料 → 交付現金後按「確認領取完成」才算完成</span>
             <em>連結發給：HR</em>
           </a>
           <div class="nav-card">
             <strong>④ 員工領取頁</strong>
-            <span>員工從信件連結進入（中英雙語）：未報到擋下 → 確認 → 產生領取碼。請由下方表格的「領取頁」進入</span>
+            <span>員工從信件連結進入（中英雙語）：未報到擋下；報到完成後直接顯示資料與唯一領取碼，不需任何確認。請由下方表格的「領取頁」進入</span>
             <em>連結寄給：每位員工</em>
           </div>
         </div>
@@ -52,16 +52,16 @@
         </div>
 
         <div class="table-wrap">
-          <table style="min-width:760px">
+          <table style="min-width:980px">
             <thead>
               <tr>
                 <th>工號</th>
                 <th>姓名</th>
                 <th>填寫眷屬</th>
                 <th>狀態</th>
-                <th>報到 QR</th>
+                <th>報到代碼（QR 內容）</th>
                 <th>領取頁</th>
-                <th>領取碼 QR</th>
+                <th>領取碼（QR 內容）</th>
               </tr>
             </thead>
             <tbody id="demoBody"></tbody>
@@ -76,7 +76,7 @@
 
   <script src="js/vendor/qrcode.js"></script>
   <script src="js/config.js"></script>
-  <script src="js/rest-api.js"></script>
+  <script src="js/mock-api.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/index.js"></script>
 </body>

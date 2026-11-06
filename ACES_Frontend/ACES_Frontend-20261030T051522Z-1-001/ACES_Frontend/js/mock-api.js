@@ -1,8 +1,9 @@
 // 模擬後端（Prototype）：資料存在瀏覽器 localStorage，結構對應會議決議的 3 張表。
 //   employees = 主表   （工號、姓名、單位、小隊、眷屬填寫數、Email、種子碼）
 //   checkins  = 報到表 （工號、報到負責人工號、報到時間、報到人數、是否報到 0/1）
-//   receipts  = 簽收表 （工號、領取碼、簽收人工號、簽收時間、是否領取 0/1）
-// 金額只存在「主表」概念上，隨報到人數即時重算；這裡以 calcAmount() 動態計算。
+//   receipts  = 簽收表 （工號、領取碼、簽收人工號、簽收時間、是否領取 0/1；領取碼在報到完成時產生）
+// 金額一律由後端計算（隨報到人數即時重算）；前端只顯示回傳的 amount，不做任何金額計算。
+// 補助規則與 calcAmount() 都放在本檔，換成真後端時一併搬到後端。
 //
 // 後端完成後，只要寫一份同樣函式簽章的 rest-api.js 取代本檔即可，頁面程式不用改。
 // 資料不會在不同裝置間共用（只在同一瀏覽器的各頁面共用），跨裝置測試請等真後端。
@@ -16,20 +17,28 @@ class ApiError extends Error {
 }
 
 const api = (() => {
-  const KEY = "aces_mock_db_v2";
+  const KEY = "aces_mock_db_v3";
+
+  const EMPLOYEE_SUBSIDY = 500; // 員工補助（待 HR 確認）
+  const RELATIVE_SUBSIDY = 200; // 眷屬每人補助（待 HR 確認）
+
+  // 金額由後端計算：員工補助 + 眷屬每人補助 × 報到眷屬人數。
+  function calcAmount(relatives) {
+    return EMPLOYEE_SUBSIDY + RELATIVE_SUBSIDY * relatives;
+  }
 
   // 示範資料。種子碼為 16 碼英文大小寫 + 數字（與正式規格相同）。
   const DEMO_EMPLOYEES = [
-    ["T10001", "王小明", "數位轉型部", "紅隊", 3, "xiaoming.wang@example.com", "Kx9TmQ2vB7aLpR4s"],
-    ["T10002", "林小花", "財務部", "藍隊", 0, "xiaohua.lin@example.com", "Qw3ZnY8cD5eHjU1t"],
-    ["11110003", "陳小華", "人力資源部", "綠隊", 2, "xiaohua.chen@example.com", "Mb7RfG4kS9xVtN2p"],
-    ["T10004", "張美玲", "行銷部", "紅隊", 5, "meiling.chang@example.com", "Ld2WpE6oJ8yCaB5q"],
-    ["T10005", "李大偉", "研發部", "黃隊", 1, "dawei.li@example.com", "Hs5XcT1uK3nZgF9r"],
-    ["11110006", "黃雅婷", "業務部", "藍隊", 4, "yating.huang@example.com", "Vn8DjA3mP6bQwL7e"],
-    ["T10007", "吳志豪", "研發部", "綠隊", 0, "chihao.wu@example.com", "Gt4YhR9iC2sMfK6x"],
-    ["T10008", "Emily Carter", "國際業務部", "黃隊", 2, "emily.carter@example.com", "Bz6UeN1vH5tWoD3a"],
-    ["T10009", "劉建宏", "資訊部", "紅隊", 3, "jianhong.liu@example.com", "Pc9SaL4gX7dJrM2y"],
-    ["T10010", "蔡淑芬", "總務部", "藍隊", 1, "shufen.tsai@example.com", "Ek3NwB8qF1zYhT5u"],
+    ["T10001", "王小明", "數位轉型部", "第1隊", 3, "xiaoming.wang@example.com", "Kx9TmQ2vB7aLpR4s"],
+    ["T10002", "林小花", "財務部", "第2隊", 0, "xiaohua.lin@example.com", "Qw3ZnY8cD5eHjU1t"],
+    ["11110003", "陳小華", "人力資源部", "第3隊", 2, "xiaohua.chen@example.com", "Mb7RfG4kS9xVtN2p"],
+    ["T10004", "張美玲", "行銷部", "第1隊", 5, "meiling.chang@example.com", "Ld2WpE6oJ8yCaB5q"],
+    ["T10005", "李大偉", "研發部", "第4隊", 1, "dawei.li@example.com", "Hs5XcT1uK3nZgF9r"],
+    ["11110006", "黃雅婷", "業務部", "第2隊", 4, "yating.huang@example.com", "Vn8DjA3mP6bQwL7e"],
+    ["T10007", "吳志豪", "研發部", "第3隊", 0, "chihao.wu@example.com", "Gt4YhR9iC2sMfK6x"],
+    ["T10008", "Emily Carter", "國際業務部", "第4隊", 2, "emily.carter@example.com", "Bz6UeN1vH5tWoD3a"],
+    ["T10009", "劉建宏", "資訊部", "第1隊", 3, "jianhong.liu@example.com", "Pc9SaL4gX7dJrM2y"],
+    ["T10010", "蔡淑芬", "總務部", "第2隊", 1, "shufen.tsai@example.com", "Ek3NwB8qF1zYhT5u"],
   ];
 
   function demoDb() {
@@ -113,6 +122,12 @@ const api = (() => {
     return emp;
   }
 
+  // 報到完成的同時，為此員工產生唯一領取碼（寫入簽收表，是否領取 = 0）。
+  function issueClaimCode(db, empId) {
+    const code = uniqueCode(db, (c) => db.receipts.some((r) => r.claim_code === c));
+    db.receipts.push({ emp_id: empId, claim_code: code, signer_id: null, signed_at: null, claimed: 0, created_at: nowString() });
+  }
+
   function requireOperator(operatorId) {
     if (!isValidEmpId(operatorId)) throw new ApiError("INVALID_OPERATOR");
     return normalizeEmpId(operatorId);
@@ -151,32 +166,26 @@ const api = (() => {
         requireRelatives(relatives, maxRelativesFor(emp.declared_relatives));
 
         db.checkins.push({ emp_id: emp.emp_id, operator_id: operator, checked_in_at: nowString(), relatives, checked_in: 1 });
+        issueClaimCode(db, emp.emp_id);
         save(db);
         return joinRow(db, emp);
       }),
 
-    // 員工確認後產生領取碼（寫入簽收表，是否領取仍為 0）。重複確認回傳同一組領取碼。
-    confirmClaim: (seed) =>
+    // HR / 財務掃領取碼：先查詢並顯示此人的報到完成資料（不寫入）。
+    lookupByClaimCode: (claimCode) =>
       run(() => {
         const db = load();
-        const emp = findBySeed(db, seed);
-        if (!db.checkins.some((c) => c.emp_id === emp.emp_id)) throw new ApiError("NOT_CHECKED_IN");
-
-        const receipt = db.receipts.find((r) => r.emp_id === emp.emp_id);
-        if (receipt && receipt.claimed) throw new ApiError("ALREADY_CLAIMED");
-        if (!receipt) {
-          const code = uniqueCode(db, (c) => db.receipts.some((r) => r.claim_code === c));
-          db.receipts.push({ emp_id: emp.emp_id, claim_code: code, signer_id: null, signed_at: null, claimed: 0, created_at: nowString() });
-          save(db);
-        }
-        return joinRow(db, emp);
+        const receipt = db.receipts.find((r) => r.claim_code === String(claimCode || "").trim());
+        if (!receipt) throw new ApiError("NOT_FOUND");
+        return joinRow(db, db.employees.find((e) => e.emp_id === receipt.emp_id));
       }),
 
-    // HR 掃領取碼：寫入簽收人、時間，是否領取 0 → 1；掃完才算交易完成。
+    // HR / 財務按下「確認」：寫入簽收人、時間，是否領取 0 → 1，才算交易完成。
     signReceipt: ({ claimCode, signerId }) =>
       run(() => {
         const db = load();
-        const signer = requireOperator(signerId);
+        // 看板不做登入，簽收人不是工號時以 "HR" 記錄（同補登記）。
+        const signer = signerId === "HR" ? "HR" : requireOperator(signerId);
         const receipt = db.receipts.find((r) => r.claim_code === String(claimCode || "").trim());
         if (!receipt) throw new ApiError("NOT_FOUND");
 
@@ -197,7 +206,19 @@ const api = (() => {
         return db.employees.map((e) => joinRow(db, e));
       }),
 
-    // HR 修改報到人數（最高修改權，0 ~ 上限）；金額隨人數重算。已簽收的不可改。
+    // HR 看板：已領取總金額，由後端加總。
+    getClaimedTotal: () =>
+      run(() => {
+        const db = load();
+        return db.receipts
+          .filter((r) => r.claimed)
+          .reduce((total, r) => {
+            const checkin = db.checkins.find((c) => c.emp_id === r.emp_id);
+            return total + (checkin ? calcAmount(checkin.relatives) : 0);
+          }, 0);
+      }),
+
+    // HR 修改報到人數（0 ~ 上限）；金額隨人數重算。已產生領取碼（含已簽收）的不可改。
     updateRelatives: ({ empId, relatives }) =>
       run(() => {
         const db = load();
@@ -207,6 +228,7 @@ const api = (() => {
         if (!checkin) throw new ApiError("NOT_CHECKED_IN");
         const receipt = db.receipts.find((r) => r.emp_id === empId);
         if (receipt && receipt.claimed) throw new ApiError("ALREADY_CLAIMED");
+        if (receipt) throw new ApiError("CLAIM_CODE_ISSUED");
         requireRelatives(relatives, CONFIG.MAX_RELATIVES);
 
         checkin.relatives = relatives;
@@ -241,6 +263,7 @@ const api = (() => {
           db.employees.push(emp);
         }
         db.checkins.push({ emp_id: emp.emp_id, operator_id: operator, checked_in_at: nowString(), relatives, checked_in: 1 });
+        issueClaimCode(db, emp.emp_id);
         save(db);
         return joinRow(db, emp);
       }),
